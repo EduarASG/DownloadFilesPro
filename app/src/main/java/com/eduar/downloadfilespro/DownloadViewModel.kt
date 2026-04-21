@@ -9,34 +9,35 @@ import kotlinx.coroutines.launch
 
 class DownloadViewModel : ViewModel() {
 
-
     var apiResult by mutableStateOf("Esperando...")
         private set
 
-    fun fetchVideoInfo(videoId: String){
+    var mediaInfoReady by mutableStateOf<MediaResponse?>(null)
+        private set
+
+    fun fetchVideoInfo(videoId: String) {
         viewModelScope.launch {
-            apiResult= "Consultando al servidor..."
+            apiResult = "Consultando al servidor..."
+            mediaInfoReady = null
+
             try {
                 val request = VideoRequest(videoId)
                 val response = RetrofitClient.apiService.getInfoVideo(request)
 
-                if (response.isSuccessful){
-                    val mediaInfo= response.body()
-                    if (mediaInfo != null){
-                        apiResult = "Éxito: ${mediaInfo.name}"
-
-                    }else{
-                        apiResult = "Error"
+                if (response.isSuccessful) {
+                    val mediaInfo = response.body()
+                    if (mediaInfo != null) {
+                        apiResult = "¡Éxito! Canción encontrada."
+                        mediaInfoReady = mediaInfo
+                    } else {
+                        apiResult = "Error: El servidor no devolvió datos."
                     }
-                }else{
-                    apiResult = "Error: ${response.code()}"
+                } else {
+                    apiResult = "Error del servidor: Código ${response.code()}"
                 }
-
-            } catch (e: Exception){
-                apiResult = "Error: ${e.message}"
+            } catch (e: Exception) {
+                apiResult = "Error de conexión: ${e.localizedMessage}"
             }
         }
     }
-
-
 }
